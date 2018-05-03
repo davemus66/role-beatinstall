@@ -1,0 +1,36 @@
+---
+- name: Copy and Extract beats into /tmp
+  copy:
+    src: /tmp/{{ beats }}-{{ version }}-x86_64.rpm
+    dest: /tmp/
+    remote_src: no
+
+- name: remove previous verison
+  yum:
+    name: "{{ beats }}"
+    state: absent
+
+- name: installing "{{ beats }}"
+  yum: 
+    name: /tmp/{{ beats }}-{{ version }}-x86_64.rpm
+    state: present
+
+- name: copying over beat.yml template
+  template:
+    src: "{{ role }}-{{ beats }}.j2"
+    dest: /etc/{{ beats }}/{{ beats }}.yml
+
+- name: starting the beat service
+  service:
+    name: "{{ beats }}"
+    state: started
+
+- name: Enable service beat after reboot.
+  service:
+    name: "{{ beats }}"
+    enabled: yes
+
+- name: Removing {{ beats }} file.
+  file:
+    path: /tmp/{{ beats }}-{{ version }}-x86_64.rpm
+    state: absent
